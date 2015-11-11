@@ -27,9 +27,9 @@ This should run in your docker 2 containers
 
 
 # Api
-__BigZelda__ exposes a simple API on the port 6060. To change this port, modify the command line in start.sh (... --publish __6060__:8000 ... )
+__BigZelda__ exposes a simple API on the port 80. To change this port, modify the command line in start.sh (... --publish __80__:8000 ... )
 
-This API is accessible on localhost:6060 (if you are on windows and use docker-toolbox, use the command >docker-machine ls to get the URL of you VM)
+This API is accessible on localhost (:80) (if you are on windows and use docker-toolbox, use the command >docker-machine ls to get the URL of you VM)
 
 | | | |
 | ------------- | ------------- | ------------- |
@@ -37,7 +37,7 @@ This API is accessible on localhost:6060 (if you are on windows and use docker-t
 | __URL__  			| /shortlink/my.simpleURL.com 			| where	my.simpleURL.com is the URL you want to get a shortlink for	|
 | __param__  		| custom  (optional) 					| value under wich you want to save this URL 						|
 | __returns__  		| a message indicating the redirection	|																	|
-| __example__  		| /shortlink/www.google.com?custom=g  	| http://www.google.com is now accessible via http://192.168.99.100:6060/g |
+| __example__  		| /shortlink/www.google.com?custom=g  	| http://www.google.com is now accessible via http://localhost/g |
 
 Since encoding a URL to create a shortlink would break the simplicity, for "complex" URL to encode (like https://github.com/tools/godep), please use the following POST method 
 
@@ -47,7 +47,7 @@ Since encoding a URL to create a shortlink would break the simplicity, for "comp
 | __URL__  			| /shortlink				 			|  																	|
 | __body__  		| a origin-token tuple  				| where origin is the target of the link and token the value under wich you want to save this URL |
 | __returns__  		| a message indicating the redirection	|																	|
-| __example__  		| /shortlink  body={"origin":"https://github.com/tools/godep","token":"godep"}| https://github.com/tools/godep is now accessible via http://192.168.99.100:6060/godep |
+| __example__  		| /shortlink  body={"origin":"https://github.com/tools/godep","token":"godep"}| https://github.com/tools/godep is now accessible via http://localhost/godep |
 
 | | | |
 | ------------- | ------------- | ------------- |
