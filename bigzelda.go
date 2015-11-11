@@ -27,6 +27,10 @@ type Shortlink struct {
 	Count             uint8
 }
 
+type AdvancedShortlinkRequest struct {
+	Origin, Token string
+}
+
 func main() {
 	log.Info("Starting up!")
 
@@ -43,6 +47,10 @@ func main() {
 	log.Info("Registering ShortlinkCreationHandler on /shortlink/{value}")
 	r.HandleFunc("/shortlink/{value}", ShortlinkCreationHandler).
 		Methods("GET")
+
+	log.Info("Registering AdvancedShortlinkCreationHandler on /shortlink")
+	r.HandleFunc("/shortlink", AdvancedShortlinkCreationHandler).
+		Methods("POST")
 
 	log.Info("Registering MonitoringHandler on /admin/{value}")
 	r.HandleFunc("/admin/{value}", MonitoringHandler).
@@ -92,25 +100,58 @@ func RedirectionHandler(w http.ResponseWriter, r *http.Request) {
 
 func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("ShortlinkCreationHandler")
-	
+
 	//Load params
 	vars := mux.Vars(r)
 	origin := vars["value"]
 	token := r.FormValue("custom")
 	origin = "http://" + origin
-	
+
+	token, err := CreateShortlink(origin, token)
+	if err != nil {
+		http.Error(w, "Invalid origin parameter", 404)
+		return
+	}
+
+	w.Write([]byte(origin + " is now accessible at the url http://localhost:8000/" + token + "\n"))
+}
+
+func AdvancedShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
+	log.Info("AdvancedShortlinkCreationHandler")
+
+	//Load params
+	decoder := json.NewDecoder(r.Body)
+	var request AdvancedShortlinkRequest
+	err := decoder.Decode(&request)
+	if err != nil {
+		http.Error(w, "Invalid request body", 400)
+		return
+	}
+
+	origin := request.Origin
+	token := request.Token
+
+	token, err = CreateShortlink(origin, token)
+	if err != nil {
+		http.Error(w, "Invalid origin parameter", 404)
+		return
+	}
+
+	w.Write([]byte(origin + " is now accessible at the url http://localhost:8000/" + token + "\n"))
+}
+
+func CreateShortlink(origin, token string) (string, error) {
 	//Check origin
 	_, err := http.Get(origin)
 	if err != nil {
-		http.Error(w, "Invalid origin", 404)
-		return
+		return "",err
 	}
-	
+
 	//Store in Redis
 	if token == "" {
 		token = RandomString()
 	}
-	
+
 	//check if key is already used
 	if redisClient.Get(token).Val() != "" {
 		log.WithFields(log.Fields{"token": token}).Warn("token already used")
@@ -120,12 +161,12 @@ func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		token = token + strconv.Itoa(i)
 	}
-	
+
 	// Save Shortlink in Redis
 	log.WithFields(log.Fields{"origin": origin, "token": token}).Info("creation")
 	uuid, _ := newUUID()
 	SaveInRedis(Shortlink{uuid, token, origin, time.Now().Unix(), 0})
-	w.Write([]byte(origin + " is now accessible at the url http://localhost:8000/" + token + "\n"))
+	return token, nil
 }
 
 func MonitoringHandler(w http.ResponseWriter, r *http.Request) {
