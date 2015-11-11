@@ -31,7 +31,7 @@ __BigZelda__ exposes a simple API on the port 6060. To change this port, modify 
 
 This API is accessible on localhost:6060
 
-||||
+| | | |
 |-|-|-|
 | __Method__		| GET 									|																	|
 | __URL__  			| /shortlink/my.simpleURL.com 			| where	my.simpleURL.com is the URL you want to get a shortlink for	|
@@ -41,7 +41,7 @@ This API is accessible on localhost:6060
 
 Since encoding a URL to create a shortlink would break the simplicity, for "complex" URL to encode (like https://github.com/tools/godep), please use the following POST method 
 
-||||
+| | | |
 |-|-|-|
 | __Method__		| POST 									|																	|
 | __URL__  			| /shortlink				 			|  																	|
@@ -49,14 +49,14 @@ Since encoding a URL to create a shortlink would break the simplicity, for "comp
 | __returns__  		| a message indicating the redirection	|																	|
 | __example__  		| /shortlink  body={"origin":"https://github.com/tools/godep","token":"godep"}| https://github.com/tools/godep is now accessible via /godep |
 
-||||
+| | | |
 |-|-|-|
 | __Method__		| GET 										|											|
 | __URL__  			| /shtlnk 									| where	shtlnk is the shortlink token		|
 | __returns__  		| nothing, you are redirected to the target	|											|
 | __example__  		| /g 										| you are now on  	http://www.google.com	|
 
-||||
+| | | |
 |-|-|-|
 | __Method__		| GET 										|											|
 | __URL__  			| /admin/shtlnk 							| where	shtlnk is the shortlink token		|
