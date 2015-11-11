@@ -2,4 +2,4 @@
 # and a workspace (GOPATH) configured at /go.
 FROM golang
 FROM golang:onbuild
-EXPOSE 8080
+EXPOSE 8000

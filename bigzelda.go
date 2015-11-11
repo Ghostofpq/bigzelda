@@ -81,8 +81,18 @@ func main() {
 
 func InitRedisClient() {
 	log.Info("Setting up Redis client")
+	redisHost := os.Getenv("DB_PORT_6379_TCP_ADDR")
+	redisPort := os.Getenv("DB_PORT_6379_TCP_PORT")
+	if redisHost == "" {
+		redisHost = "localhost"
+	}
+	if redisPort == "" {
+		redisPort = "6379"
+	}
+	redisAddr := redisHost + ":" + redisPort
+	log.Info("Connecting to " + redisAddr)
 	redisClient = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     redisAddr,
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
