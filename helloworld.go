@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
@@ -14,18 +13,25 @@ var redisClient *redis.Client
 
 func main() {
 	log.Info("Starting up!")
+	// INIT Redis
 	InitRedisClient()
-	r := mux.NewRouter()	
-	log.Info("Registering GorillaHandler on /gorilla")
-	r.HandleFunc("/gorilla", GorillaHandler)
+
+	// INIT Server
+	r := mux.NewRouter()
+
 	log.Info("Registering RedirectionHandler on /{value}")
-	r.HandleFunc("/{value}", RedirectionHandler)
+	r.HandleFunc("/{value}", RedirectionHandler).
+		Methods("GET")
+
 	log.Info("Registering ShortlinkCreationHandler on /shortlink/{value}")
-	r.HandleFunc("/shortlink/{value}", ShortlinkCreationHandler)
+	r.HandleFunc("/shortlink/{value}", ShortlinkCreationHandler).
+		Methods("GET")
+
 	log.Info("Registering MonitoringHandler on /admin/{value}")
-	r.HandleFunc("/admin/{value}", MonitoringHandler)
+	r.HandleFunc("/admin/{value}", MonitoringHandler).
+		Methods("GET")
+
 	http.Handle("/", r)
-	log.Info("Starting up on :8000")
 	http.ListenAndServe(":8000", r)
 }
 
@@ -45,12 +51,11 @@ func InitRedisClient() {
 	}
 }
 
-func GorillaHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Gorilla!\n"))
-}
-
 func RedirectionHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("RedirectionHandler!\n"))
+	vars := mux.Vars(r)
+	shortlink := vars["value"]
+	log.WithFields(log.Fields{"shortlink": shortlink, "origin": ""}).Debug("redirection")
+	http.Redirect(w, r, "http://www.google.com/", http.StatusFound)
 }
 
 func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
