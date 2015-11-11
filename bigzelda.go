@@ -93,7 +93,7 @@ func InitRedisClient() {
 	log.Info("Connecting to " + redisAddr)
 	redisClient = redis.NewClient(&redis.Options{
 		Addr:     redisAddr,
-		Password: viper.GetString("redisPassword"), 
+		Password: viper.GetString("redisPassword"),
 		DB:       int64(viper.GetInt("redisDB")),
 	})
 	pong, err := redisClient.Ping().Result()
@@ -144,7 +144,7 @@ func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(origin + " is now accessible via /" + token + "\n"))
+	w.Write([]byte(origin + " is now accessible via http://" + r.Host + "/" + token + "\n"))
 }
 
 func AdvancedShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
@@ -168,7 +168,7 @@ func AdvancedShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(origin + " is now accessible via /" + token + "\n"))
+	w.Write([]byte(origin + " is now accessible via http://" + r.Host + "/" + token + "\n"))
 }
 
 func RegisterShortlink(origin, token string) (string, error) {

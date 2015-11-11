@@ -1,5 +1,5 @@
 # bigzelda
-__BigZelda__ is a shortlink creator (get it? short Link?)
+__BigZelda__ is a shortlink creator (get it? short Link? gimme the rupees)
 
 # Features
 A shortlink is the association of a base URL (origin) and a more simple key (token) randomly generated or given by the user.
