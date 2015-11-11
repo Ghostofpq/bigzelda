@@ -1,0 +1,28 @@
+{
+	"ImportPath": "github.com/Ghostofpq/bigzelda",
+	"GoVersion": "go1.5.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.8.7-37-g6f383a9",
+			"Rev": "6f383a9b2998dd6f401704269c3e6e192f6175ad"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "48e889f422c9702f924e53b095546239a1253159"
+		},
+		{
+			"ImportPath": "gopkg.in/bsm/ratelimit.v1",
+			"Rev": "bda20d5067a03094fc6762f7ead53027afac5f28"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v3",
+			"Comment": "v3.2.13",
+			"Rev": "96fcac6a430e74927b638b73f373ad4d99de005b"
+		}
+	]
+}

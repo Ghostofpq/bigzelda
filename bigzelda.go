@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/gorilla/mux"
-	"gopkg.in/redis.v3"
+	log "github.com/Ghostofpq/bigzelda/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	"github.com/Ghostofpq/bigzelda/Godeps/_workspace/src/github.com/gorilla/mux"
+	"github.com/Ghostofpq/bigzelda/Godeps/_workspace/src/gopkg.in/redis.v3"
 )
 
 // Redis client
