@@ -3,3 +3,8 @@
 port : 			8000 # change the Dockerfile also if you change the port
 tokenMaxSize : 	6	 # Anticolision number not include (azerty0 is valid for 6)
 dataTTL : 		300  # In seconds
+# Redis connection configuration
+redisHost : 	localhost 	# ignore if you use docker, injected via environnement variables
+redisPort : 	6379 		# ignore if you use docker, injected via environnement variables
+redisPassword :  
+redisDB : 		0

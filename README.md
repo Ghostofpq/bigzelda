@@ -29,7 +29,7 @@ This should run in your docker 2 containers
 # Api
 __BigZelda__ exposes a simple API on the port 6060. To change this port, modify the command line in start.sh (... --publish __6060__:8000 ... )
 
-This API is accessible on localhost:6060
+This API is accessible on localhost:6060 (if you are on windows and use docker-toolbox, use the command >docker-machine ls to get the URL of you VM)
 
 | | | |
 | ------------- | ------------- | ------------- |

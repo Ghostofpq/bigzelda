@@ -84,17 +84,17 @@ func InitRedisClient() {
 	redisHost := os.Getenv("DB_PORT_6379_TCP_ADDR")
 	redisPort := os.Getenv("DB_PORT_6379_TCP_PORT")
 	if redisHost == "" {
-		redisHost = "localhost"
+		redisHost = viper.GetString("redisHost")
 	}
 	if redisPort == "" {
-		redisPort = "6379"
+		redisPort = viper.GetString("redisPort")
 	}
 	redisAddr := redisHost + ":" + redisPort
 	log.Info("Connecting to " + redisAddr)
 	redisClient = redis.NewClient(&redis.Options{
 		Addr:     redisAddr,
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Password: viper.GetString("redisPassword"), 
+		DB:       int64(viper.GetInt("redisDB")),
 	})
 	pong, err := redisClient.Ping().Result()
 	if pong == "PONG" {
