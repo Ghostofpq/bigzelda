@@ -3,13 +3,14 @@ package main
 import (
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
@@ -68,46 +69,50 @@ func InitRedisClient() {
 }
 
 func RedirectionHandler(w http.ResponseWriter, r *http.Request) {
+	log.Info("RedirectionHandler")
+
+	// Extract request parameters
 	vars := mux.Vars(r)
 	token := vars["value"]
-	// Get Key in Redis
-	shortlinkAsJson := redisClient.Get(token).Val()
-	if shortlinkAsJson == "" {
-		w.Write([]byte("invalid token!\n"))
-		http.Error(w, http.StatusText(404), 404)
+
+	// Fetch Shortlink in Redis
+	shortlink, err := ReadFromRedis(token)
+	if err != nil {
+		http.Error(w, "Token not found", 404)
 		return
 	}
-	dec := json.NewDecoder(strings.NewReader(shortlinkAsJson))
-	var shortlink Shortlink
-	dec.Decode(&shortlink)
-	log.Info(shortlink)
-	// TODO Increment count
+
+	// Increment
+	shortlink.Count++
+	SaveInRedis(shortlink)
+
+	// Redirect
 	http.Redirect(w, r, shortlink.Origin, http.StatusFound)
 }
 
 func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
-
+	log.Info("ShortlinkCreationHandler")
+	
 	//Load params
 	vars := mux.Vars(r)
 	origin := vars["value"]
 	token := r.FormValue("custom")
 	origin = "http://" + origin
 	log.WithFields(log.Fields{"origin": origin, "token": token}).Info("creation")
+	
 	//Check origin
 	_, err := http.Get(origin)
 	if err != nil {
-		w.Write([]byte("invalid origin!\n"))
-		http.Error(w, http.StatusText(404), 404)
+		http.Error(w, "Invalid origin", 404)
 		return
 	}
-	log.Info("origin is valid")
+	
 	//Store in Redis
 	if token == "" {
 		token = RandomString()
 	}
+	
 	//check if key is already used
-	log.Info("check token")
-
 	if redisClient.Get(token).Val() != "" {
 		log.WithFields(log.Fields{"token": token}).Warn("token already used")
 		i := 0
@@ -116,19 +121,60 @@ func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		token = token + strconv.Itoa(i)
 	}
-
+	
 	// Save Shortlink in Redis
 	uuid, _ := newUUID()
-	shortlinkAsJson, err := json.Marshal(Shortlink{uuid, token, origin, time.Now().Unix(), 0})
-	if err != nil {
-		log.Fatal(err)
-	}
-	redisClient.Append(token, string(shortlinkAsJson))
-	w.Write([]byte(string(shortlinkAsJson) + "\n"))
+	SaveInRedis(Shortlink{uuid, token, origin, time.Now().Unix(), 0})
+	w.Write([]byte(origin + " is now accessible at the url http://localhost:8000/" + token + "\n"))
 }
 
 func MonitoringHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("MonitoringHandler!\n"))
+	log.Info("MonitoringHandler")
+	//Load params
+	vars := mux.Vars(r)
+	token := vars["value"]
+	shortlink, err := ReadFromRedisAsJson(token)
+	if err != nil {
+		http.Error(w, "Token not found", 404)
+		return
+	}
+	w.Write([]byte(shortlink))
+}
+
+func ReadFromRedis(token string) (Shortlink, error) {
+	// Get value from key
+	redisValue := redisClient.Get(token).Val()
+	if redisValue == "" {
+		return Shortlink{"", "", "", 0, 0}, errors.New("No value is associated to key [" + token + "]")
+	}
+	// JSON -> Shortlink
+	reader := json.NewDecoder(strings.NewReader(redisValue))
+	var shortlink Shortlink
+	reader.Decode(&shortlink)
+	// Return
+	return shortlink, nil
+}
+
+func ReadFromRedisAsJson(token string) (string, error) {
+	// Get value from key
+	redisValue := redisClient.Get(token).Val()
+	if redisValue == "" {
+		return "", errors.New("No value is associated to key [" + token + "]")
+	}
+	// JSON -> Shortlink
+	return redisValue, nil
+}
+
+func SaveInRedis(shortlink Shortlink) {
+	// Shortlink -> JSON
+	shortlinkAsJson, err := json.Marshal(shortlink)
+	if err != nil {
+		log.Fatal("could not Marshall a shortlink")
+	}
+	// Save Key
+	redisClient.Append(shortlink.Token, string(shortlinkAsJson))
+	// Set TTL
+	redisClient.Expire(shortlink.Token, 5*time.Minute)
 }
 
 func RandomString() string {
