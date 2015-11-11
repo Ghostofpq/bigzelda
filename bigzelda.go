@@ -14,11 +14,9 @@ import (
 
 	log "github.com/Ghostofpq/bigzelda/Godeps/_workspace/src/github.com/Sirupsen/logrus"
 	"github.com/Ghostofpq/bigzelda/Godeps/_workspace/src/github.com/gorilla/mux"
+	"github.com/Ghostofpq/bigzelda/Godeps/_workspace/src/github.com/spf13/viper"
 	"github.com/Ghostofpq/bigzelda/Godeps/_workspace/src/gopkg.in/redis.v3"
 )
-
-// Redis client
-var redisClient *redis.Client
 
 // Shortlink structure
 type Shortlink struct {
@@ -31,16 +29,34 @@ type Shortlink struct {
 type AdvancedShortlinkRequest struct {
 	Origin, Token string
 }
+type Config struct {
+	Port, TokenMaxSize, DataTTL int
+}
+
+var configuration Config
+
+// Redis client
+var redisClient *redis.Client
 
 func main() {
 	log.Info("Starting up!")
+	viper.SetConfigName("conf")
+	viper.AddConfigPath("conf/")
+	viper.SetConfigType("yaml")
+	err := viper.ReadInConfig() // Find and read the config file
+	if err != nil {             // Handle errors reading the config file
+		log.Fatal("Fatal error config file: %s \n", err)
+	}
+
+	configuration.Port = viper.GetInt("port")
+	configuration.DataTTL = viper.GetInt("dataTTL")
+	configuration.TokenMaxSize = viper.GetInt("tokenMaxSize")
 
 	// INIT Redis
 	InitRedisClient()
 
 	// INIT Server
 	r := mux.NewRouter()
-
 	log.Info("Registering RedirectionHandler on /{value}")
 	r.HandleFunc("/{value}", RedirectionHandler).
 		Methods("GET")
@@ -58,7 +74,7 @@ func main() {
 		Methods("GET")
 
 	http.Handle("/", r)
-	http.ListenAndServe(":8000", r)
+	http.ListenAndServe(":"+strconv.Itoa(configuration.Port), r)
 }
 
 // REDIS INIT
@@ -118,7 +134,7 @@ func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(origin + " is now accessible at the url http://localhost:8000/" + token + "\n"))
+	w.Write([]byte(origin + " is now accessible via /" + token + "\n"))
 }
 
 func AdvancedShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
@@ -138,11 +154,11 @@ func AdvancedShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 
 	token, err = RegisterShortlink(origin, token)
 	if err != nil {
-		http.Error(w, "Invalid origin parameter", 404)
+		http.Error(w, err.Error(), 404)
 		return
 	}
 
-	w.Write([]byte(origin + " is now accessible at the url http://localhost:8000/" + token + "\n"))
+	w.Write([]byte(origin + " is now accessible via /" + token + "\n"))
 }
 
 func RegisterShortlink(origin, token string) (string, error) {
@@ -155,6 +171,10 @@ func RegisterShortlink(origin, token string) (string, error) {
 	//Store in Redis
 	if token == "" {
 		token = RandomString()
+	} else {
+		if len(token) > configuration.TokenMaxSize {
+			return "", errors.New("token is too long")
+		}
 	}
 
 	//check if key is already used
@@ -197,7 +217,7 @@ func CreateShortlink(shortlink Shortlink) {
 		log.Fatal("could not Marshall a shortlink")
 	}
 	// Save Key
-	redisClient.SetNX(shortlink.Token, string(shortlinkAsJson), 5*time.Minute)
+	redisClient.SetNX(shortlink.Token, string(shortlinkAsJson), time.Duration(configuration.DataTTL)*time.Minute)
 }
 
 // Update a Shortlink object
@@ -208,7 +228,7 @@ func UpdateShortlink(shortlink Shortlink) {
 		log.Fatal("could not Marshall a shortlink")
 	}
 	// Update Shortlink
-	redisClient.SetXX(shortlink.Token, string(shortlinkAsJson), 5*time.Minute)
+	redisClient.SetXX(shortlink.Token, string(shortlinkAsJson), time.Duration(configuration.DataTTL)*time.Minute)
 }
 
 // Get a Shortlink object
@@ -239,7 +259,7 @@ func ReadFromRedisAsJson(token string) (string, error) {
 
 // Generates a random String
 func RandomString() string {
-	rb := make([]byte, 6)
+	rb := make([]byte, configuration.TokenMaxSize)
 	dictionary := "abcdefghijklmnopqrstuvwxyz"
 	rand.Read(rb)
 	for k, v := range rb {
