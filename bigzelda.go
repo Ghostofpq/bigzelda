@@ -27,6 +27,7 @@ type Shortlink struct {
 	Count             uint8
 }
 
+//Shortlink request structure
 type AdvancedShortlinkRequest struct {
 	Origin, Token string
 }
@@ -60,6 +61,8 @@ func main() {
 	http.ListenAndServe(":8000", r)
 }
 
+// REDIS INIT
+
 func InitRedisClient() {
 	log.Info("Setting up Redis client")
 	redisClient = redis.NewClient(&redis.Options{
@@ -75,6 +78,8 @@ func InitRedisClient() {
 		os.Exit(1)
 	}
 }
+
+// HANDLERS
 
 func RedirectionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("RedirectionHandler")
@@ -92,7 +97,7 @@ func RedirectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Increment
 	shortlink.Count++
-	SaveInRedis(shortlink)
+	UpdateShortlink(shortlink)
 
 	// Redirect
 	http.Redirect(w, r, shortlink.Origin, http.StatusFound)
@@ -107,7 +112,7 @@ func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 	token := r.FormValue("custom")
 	origin = "http://" + origin
 
-	token, err := CreateShortlink(origin, token)
+	token, err := RegisterShortlink(origin, token)
 	if err != nil {
 		http.Error(w, "Invalid origin parameter", 404)
 		return
@@ -131,7 +136,7 @@ func AdvancedShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 	origin := request.Origin
 	token := request.Token
 
-	token, err = CreateShortlink(origin, token)
+	token, err = RegisterShortlink(origin, token)
 	if err != nil {
 		http.Error(w, "Invalid origin parameter", 404)
 		return
@@ -140,11 +145,11 @@ func AdvancedShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(origin + " is now accessible at the url http://localhost:8000/" + token + "\n"))
 }
 
-func CreateShortlink(origin, token string) (string, error) {
+func RegisterShortlink(origin, token string) (string, error) {
 	//Check origin
 	_, err := http.Get(origin)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	//Store in Redis
@@ -165,7 +170,7 @@ func CreateShortlink(origin, token string) (string, error) {
 	// Save Shortlink in Redis
 	log.WithFields(log.Fields{"origin": origin, "token": token}).Info("creation")
 	uuid, _ := newUUID()
-	SaveInRedis(Shortlink{uuid, token, origin, time.Now().Unix(), 0})
+	CreateShortlink(Shortlink{uuid, token, origin, time.Now().Unix(), 0})
 	return token, nil
 }
 
@@ -182,6 +187,31 @@ func MonitoringHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(shortlink))
 }
 
+// UTILS
+
+// Save a Shortlink object
+func CreateShortlink(shortlink Shortlink) {
+	// Shortlink -> JSON
+	shortlinkAsJson, err := json.Marshal(shortlink)
+	if err != nil {
+		log.Fatal("could not Marshall a shortlink")
+	}
+	// Save Key
+	redisClient.SetNX(shortlink.Token, string(shortlinkAsJson), 5*time.Minute)
+}
+
+// Update a Shortlink object
+func UpdateShortlink(shortlink Shortlink) {
+	// Shortlink -> JSON
+	shortlinkAsJson, err := json.Marshal(shortlink)
+	if err != nil {
+		log.Fatal("could not Marshall a shortlink")
+	}
+	// Update Shortlink
+	redisClient.SetXX(shortlink.Token, string(shortlinkAsJson), 5*time.Minute)
+}
+
+// Get a Shortlink object
 func ReadFromRedis(token string) (Shortlink, error) {
 	// Get value from key
 	redisValue := redisClient.Get(token).Val()
@@ -196,6 +226,7 @@ func ReadFromRedis(token string) (Shortlink, error) {
 	return shortlink, nil
 }
 
+// Get a Shortlink object as it is stored in Redis (JSON)
 func ReadFromRedisAsJson(token string) (string, error) {
 	// Get value from key
 	redisValue := redisClient.Get(token).Val()
@@ -204,18 +235,6 @@ func ReadFromRedisAsJson(token string) (string, error) {
 	}
 	// JSON -> Shortlink
 	return redisValue, nil
-}
-
-func SaveInRedis(shortlink Shortlink) {
-	// Shortlink -> JSON
-	shortlinkAsJson, err := json.Marshal(shortlink)
-	if err != nil {
-		log.Fatal("could not Marshall a shortlink")
-	}
-	// Save Key
-	redisClient.Append(shortlink.Token, string(shortlinkAsJson))
-	// Set TTL
-	redisClient.Expire(shortlink.Token, 5*time.Minute)
 }
 
 // Generates a random String
