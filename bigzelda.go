@@ -98,7 +98,6 @@ func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 	origin := vars["value"]
 	token := r.FormValue("custom")
 	origin = "http://" + origin
-	log.WithFields(log.Fields{"origin": origin, "token": token}).Info("creation")
 	
 	//Check origin
 	_, err := http.Get(origin)
@@ -123,6 +122,7 @@ func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	// Save Shortlink in Redis
+	log.WithFields(log.Fields{"origin": origin, "token": token}).Info("creation")
 	uuid, _ := newUUID()
 	SaveInRedis(Shortlink{uuid, token, origin, time.Now().Unix(), 0})
 	w.Write([]byte(origin + " is now accessible at the url http://localhost:8000/" + token + "\n"))
@@ -177,6 +177,7 @@ func SaveInRedis(shortlink Shortlink) {
 	redisClient.Expire(shortlink.Token, 5*time.Minute)
 }
 
+// Generates a random String
 func RandomString() string {
 	rb := make([]byte, 6)
 	dictionary := "abcdefghijklmnopqrstuvwxyz"
@@ -187,7 +188,7 @@ func RandomString() string {
 	return string(rb)
 }
 
-//From http://play.golang.org/p/4FkNSiUDMg
+// Generates a UUID (http://play.golang.org/p/4FkNSiUDMg)
 func newUUID() (string, error) {
 	uuid := make([]byte, 16)
 	n, err := io.ReadFull(rand.Reader, uuid)
