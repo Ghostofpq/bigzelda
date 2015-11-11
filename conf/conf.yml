@@ -1,5 +1,5 @@
 ---
 # bigzelda configuration
-port : 8000
-tokenMaxSize : 6
-dataTTL : 300
+port : 			8000 # change the Dockerfile also if you change the port
+tokenMaxSize : 	6	 # Anticolision number not include (azerty0 is valid for 6)
+dataTTL : 		300  # In seconds
