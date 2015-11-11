@@ -9,13 +9,22 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"gopkg.in/redis.v3"
 )
 
+// Redis client
 var redisClient *redis.Client
+
+// Shortlink structure
+type Shortlink struct {
+	Id, Token, Origin string
+	CreationTs        int64
+	Count             uint8
+}
 
 func main() {
 	log.Info("Starting up!")
@@ -60,11 +69,20 @@ func InitRedisClient() {
 
 func RedirectionHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	shortlink := vars["value"]
-	// TODO : determine origin from value
-
-	log.WithFields(log.Fields{"shortlink": shortlink, "origin": ""}).Debug("redirection")
-	http.Redirect(w, r, "http://www.google.com/", http.StatusFound)
+	token := vars["value"]
+	// Get Key in Redis
+	shortlinkAsJson := redisClient.Get(token).Val()
+	if shortlinkAsJson == "" {
+		w.Write([]byte("invalid token!\n"))
+		http.Error(w, http.StatusText(404), 404)
+		return
+	}
+	dec := json.NewDecoder(strings.NewReader(shortlinkAsJson))
+	var shortlink Shortlink
+	dec.Decode(&shortlink)
+	log.Info(shortlink)
+	// TODO Increment count
+	http.Redirect(w, r, shortlink.Origin, http.StatusFound)
 }
 
 func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
@@ -91,29 +109,22 @@ func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("check token")
 
 	if redisClient.Get(token).Val() != "" {
-		log.WithFields(log.Fields{"token": token}).Info("token already used")
+		log.WithFields(log.Fields{"token": token}).Warn("token already used")
 		i := 0
 		for ; redisClient.Get(token+strconv.Itoa(i)).Val() != ""; i++ {
-			log.WithFields(log.Fields{"token": token + strconv.Itoa(i)}).Info("token already used")
+			log.WithFields(log.Fields{"token": token + strconv.Itoa(i)}).Warn("token already used")
 		}
 		token = token + strconv.Itoa(i)
 	}
-	log.Info(token)
+
+	// Save Shortlink in Redis
 	uuid, _ := newUUID()
 	shortlinkAsJson, err := json.Marshal(Shortlink{uuid, token, origin, time.Now().Unix(), 0})
 	if err != nil {
 		log.Fatal(err)
 	}
-	shortlink := string(shortlinkAsJson)
-	log.Info(shortlink)
-	redisClient.Append(token, string(shortlink))
-	w.Write([]byte(shortlink + "\n"))
-}
-
-type Shortlink struct {
-	Id, Token, Origin string
-	CreationTs        int64
-	Count             uint8
+	redisClient.Append(token, string(shortlinkAsJson))
+	w.Write([]byte(string(shortlinkAsJson) + "\n"))
 }
 
 func MonitoringHandler(w http.ResponseWriter, r *http.Request) {
