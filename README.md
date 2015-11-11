@@ -31,8 +31,8 @@ __BigZelda__ exposes a simple API on the port 6060. To change this port, modify 
 
 This API is accessible on localhost:6060
 
-| a | a | a |
-| - | - | - |
+| | | |
+| ------------- | ------------- | ------------- |
 | __Method__		| GET 									|																	|
 | __URL__  			| /shortlink/my.simpleURL.com 			| where	my.simpleURL.com is the URL you want to get a shortlink for	|
 | __param__  		| custom  (optional) 					| value under wich you want to save this URL 						|
@@ -41,23 +41,23 @@ This API is accessible on localhost:6060
 
 Since encoding a URL to create a shortlink would break the simplicity, for "complex" URL to encode (like https://github.com/tools/godep), please use the following POST method 
 
-| a | a | a |
-| - | - | - |
+| | | |
+| ------------- | ------------- | ------------- |
 | __Method__		| POST 									|																	|
 | __URL__  			| /shortlink				 			|  																	|
 | __body__  		| a origin-token tuple  				| where origin is the target of the link and token the value under wich you want to save this URL |
 | __returns__  		| a message indicating the redirection	|																	|
 | __example__  		| /shortlink  body={"origin":"https://github.com/tools/godep","token":"godep"}| https://github.com/tools/godep is now accessible via /godep |
 
-| a | a | a |
-| - | - | - |
+| | | |
+| ------------- | ------------- | ------------- |
 | __Method__		| GET 										|											|
 | __URL__  			| /shtlnk 									| where	shtlnk is the shortlink token		|
 | __returns__  		| nothing, you are redirected to the target	|											|
 | __example__  		| /g 										| you are now on  	http://www.google.com	|
 
-| a | a | a |
-| - | - | - |
+| | | |
+| ------------- | ------------- | ------------- |
 | __Method__		| GET 										|											|
 | __URL__  			| /admin/shtlnk 							| where	shtlnk is the shortlink token		|
 | __returns__  		| the Shortlink object stored in redis		|											|
