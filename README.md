@@ -17,7 +17,7 @@ BigZelda exposes a simple API on the port 6060. To change this port, modify the 
 
 This API is accessible on localhost:6060
 
-|               |                                       |            														|
+
 | ------------- | ------------------------------------- |------------------------------------------------------------------ |
 | Method		| GET 									|																	|
 | URL  			| /shortlink/my.simpleURL.com 			| where	my.simpleURL.com is the URL you want to get a shortlink for	|
