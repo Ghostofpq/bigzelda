@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"net/http"
 	"os"
 
@@ -13,6 +14,7 @@ var redisClient *redis.Client
 
 func main() {
 	log.Info("Starting up!")
+
 	// INIT Redis
 	InitRedisClient()
 
@@ -54,14 +56,36 @@ func InitRedisClient() {
 func RedirectionHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	shortlink := vars["value"]
+	// TODO : determine origin from value
+
 	log.WithFields(log.Fields{"shortlink": shortlink, "origin": ""}).Debug("redirection")
 	http.Redirect(w, r, "http://www.google.com/", http.StatusFound)
 }
 
 func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
+	//Load params
+	vars := mux.Vars(r)
+	origin := vars["value"]
+	custom := r.FormValue("custom")
+	log.WithFields(log.Fields{"origin": origin, "custom": custom}).Info("creation")
+	//Check origin
+	
+	
+	//
+	log.Info(RandomString())
 	w.Write([]byte("ShortlinkCreationHandler!\n"))
 }
 
 func MonitoringHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("MonitoringHandler!\n"))
+}
+
+func RandomString() string {
+	rb := make([]byte, 6)
+	dictionary := "abcdefghijklmnopqrstuvwxyz"
+	rand.Read(rb)
+	for k, v := range rb {
+		rb[k] = dictionary[v%byte(len(dictionary))]
+	}
+	return string(rb)
 }
