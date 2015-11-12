@@ -26,7 +26,7 @@ type Shortlink struct {
 }
 
 type CreationResult struct {
-	Origin, Token string
+	Origin, Shortlink string
 }
 
 //Shortlink request structure
@@ -167,7 +167,7 @@ func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	creationResult := CreationResult{origin, token}
+	creationResult := CreationResult{origin, "http://" + r.Host + "/" + token}
 	json.NewEncoder(w).Encode(creationResult)
 }
 
@@ -192,7 +192,7 @@ func AdvancedShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	creationResult := CreationResult{origin, token}
+	creationResult := CreationResult{origin, "http://" + r.Host + "/" + token}
 	json.NewEncoder(w).Encode(creationResult)
 }
 
