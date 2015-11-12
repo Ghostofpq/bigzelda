@@ -40,7 +40,7 @@ This API is accessible on localhost (:80) (if you are on windows and use docker-
 | __URL__  			| /shortlink/my.simpleURL.com 			| where	my.simpleURL.com is the URL you want to get a shortlink for	|
 | __param__  		| custom  (optional) 					| value under wich you want to save this URL 						|
 | __returns__  		| a Json structure containing the token and the origin	|																	|
-| __example__  		| /shortlink/www.google.com?custom=g  	| {"Origin":"http://www.google.com","ToShortlinkken":"http://localhost/g"}				 |
+| __example__  		| /shortlink/www.google.com?custom=g  	| {"Origin":"http://www.google.com","Shortlinkken":"http://localhost/g"}				 |
 
 Since encoding a URL to create a shortlink would break the simplicity, for "complex" URL to encode (like https://github.com/tools/godep), please use the following POST method 
 
