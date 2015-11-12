@@ -12,6 +12,9 @@ With this configuration file, you can change
 - the port on wich the __BigZelda__ application API is exposed
 - the token max size 
 - the shortlink Time To Live (Duration in seconds before redis removes an unused shortlink)
+- the redis connections details and credentials (you only need to set them if you are running the application as a go app and not packaged in docker)
+- the logfile name 	(final logfile name are : filenameYYYYMMDD.log)
+- the log level 	(DEBUG/INFO/WARN/ERROR)
 
 # Run
 
