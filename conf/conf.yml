@@ -8,3 +8,6 @@ redisHost : 	localhost 	# ignore if you use docker, injected via environnement v
 redisPort : 	6379 		# ignore if you use docker, injected via environnement variables
 redisPassword :  
 redisDB : 		0
+# Logger
+logfile 	:		logs/bigzelda
+loglevel	: 		DEBUG  	# DEBUG / WARN / INFO / ERROR

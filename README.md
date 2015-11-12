@@ -36,8 +36,8 @@ This API is accessible on localhost (:80) (if you are on windows and use docker-
 | __Method__		| GET 									|																	|
 | __URL__  			| /shortlink/my.simpleURL.com 			| where	my.simpleURL.com is the URL you want to get a shortlink for	|
 | __param__  		| custom  (optional) 					| value under wich you want to save this URL 						|
-| __returns__  		| a message indicating the redirection	|																	|
-| __example__  		| /shortlink/www.google.com?custom=g  	| http://www.google.com is now accessible via http://localhost/g |
+| __returns__  		| a Json structure containing the token and the origin	|																	|
+| __example__  		| /shortlink/www.google.com?custom=g  	| {"Origin":"http://www.google.com","Token":"g"}				 |
 
 Since encoding a URL to create a shortlink would break the simplicity, for "complex" URL to encode (like https://github.com/tools/godep), please use the following POST method 
 
@@ -46,8 +46,8 @@ Since encoding a URL to create a shortlink would break the simplicity, for "comp
 | __Method__		| POST 									|																	|
 | __URL__  			| /shortlink				 			|  																	|
 | __body__  		| a origin-token tuple  				| where origin is the target of the link and token the value under wich you want to save this URL |
-| __returns__  		| a message indicating the redirection	|																	|
-| __example__  		| /shortlink  body={"origin":"https://github.com/tools/godep","token":"godep"}| https://github.com/tools/godep is now accessible via http://localhost/godep |
+| __returns__  		| a Json structure containing the token and the origin	|																	|
+| __example__  		| /shortlink  body={"origin":"https://github.com/tools/godep","token":"godep"}| {"Origin":"https://github.com/tools/godepII","Token":"godep"} |
 
 | | | |
 | ------------- | ------------- | ------------- |

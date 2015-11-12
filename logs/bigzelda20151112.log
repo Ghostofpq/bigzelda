@@ -1,0 +1,19 @@
+time="2015-11-12T19:37:09+01:00" level=info msg="Starting up!" 
+time="2015-11-12T19:37:09+01:00" level=info msg="Setting up Redis client" 
+time="2015-11-12T19:37:09+01:00" level=info msg="Connecting to localhost:6379" 
+time="2015-11-12T19:37:09+01:00" level=info msg="Redis client is up and running" 
+time="2015-11-12T19:37:09+01:00" level=info msg="Registering RedirectionHandler on /{value}" 
+time="2015-11-12T19:37:09+01:00" level=info msg="Registering ShortlinkCreationHandler on /shortlink/{value}" 
+time="2015-11-12T19:37:09+01:00" level=info msg="Registering AdvancedShortlinkCreationHandler on /shortlink" 
+time="2015-11-12T19:37:09+01:00" level=info msg="Registering MonitoringHandler on /admin/{value}" 
+time="2015-11-12T19:37:12+01:00" level=debug msg=ShortlinkCreationHandler 
+time="2015-11-12T19:37:13+01:00" level=warning msg="token already used" token=cuicui 
+time="2015-11-12T19:37:13+01:00" level=warning msg="token already used" token=cuicui0 
+time="2015-11-12T19:37:13+01:00" level=warning msg="token already used" token=cuicui1 
+time="2015-11-12T19:37:13+01:00" level=warning msg="token already used" token=cuicui2 
+time="2015-11-12T19:37:13+01:00" level=info msg=creation origin="http://www.twitter.com" token=cuicui3 
+=debug msg=ShortlinkCreationHandler 
+time="2015-11-12T19:36:01+01:00" level=warning msg="token already used" token=cuicui 
+time="2015-11-12T19:36:01+01:00" level=warning msg="token already used" token=cuicui0 
+time="2015-11-12T19:36:01+01:00" level=warning msg="token already used" token=cuicui1 
+time="2015-11-12T19:36:01+01:00" level=info msg=creation origin="http://www.twitter.com" token=cuicui2 

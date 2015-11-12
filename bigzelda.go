@@ -26,7 +26,7 @@ type Shortlink struct {
 }
 
 type CreationResult struct {
-	Token, Origin string
+	Origin, Token string
 }
 
 //Shortlink request structure
@@ -43,14 +43,32 @@ var configuration Config
 var redisClient *redis.Client
 
 func main() {
-	log.Info("Starting up!")
 	viper.SetConfigName("conf")
 	viper.AddConfigPath("conf/")
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig() // Find and read the config file
 	if err != nil {             // Handle errors reading the config file
-		log.Fatal("Fatal error config file: %s \n", err)
+		log.Fatal("Could not read config file: %s \n", err)
 	}
+
+	f, err := os.OpenFile(viper.GetString("logfile")+time.Now().Format("20060102")+".log", os.O_WRONLY|os.O_CREATE, 0755)
+	if err != nil {
+		log.Fatal("Could not create log file: %s \n", err)
+	}
+	log.SetOutput(f)
+	switch viper.GetString("loglevel") {
+
+	case "DEBUG":
+		log.SetLevel(log.DebugLevel)
+	case "WARN":
+		fmt.Println(log.WarnLevel)
+	case "INFO":
+		fmt.Println(log.InfoLevel)
+	case "ERROR":
+		fmt.Println(log.ErrorLevel)
+	}
+
+	log.Info("Starting up!")
 
 	configuration.Port = viper.GetInt("port")
 	configuration.DataTTL = viper.GetInt("dataTTL")
