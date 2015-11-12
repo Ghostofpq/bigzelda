@@ -25,6 +25,10 @@ type Shortlink struct {
 	Count             uint8
 }
 
+type CreationResult struct {
+	Token, Origin string
+}
+
 //Shortlink request structure
 type AdvancedShortlinkRequest struct {
 	Origin, Token string
@@ -108,7 +112,7 @@ func InitRedisClient() {
 // HANDLERS
 
 func RedirectionHandler(w http.ResponseWriter, r *http.Request) {
-	log.Info("RedirectionHandler")
+	log.Debug("RedirectionHandler")
 
 	// Extract request parameters
 	vars := mux.Vars(r)
@@ -125,12 +129,13 @@ func RedirectionHandler(w http.ResponseWriter, r *http.Request) {
 	shortlink.Count++
 	UpdateShortlink(shortlink)
 
+	log.Info("Redirecting http://" + r.Host + "/" + shortlink.Token + " to " + shortlink.Origin)
 	// Redirect
 	http.Redirect(w, r, shortlink.Origin, http.StatusFound)
 }
 
 func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
-	log.Info("ShortlinkCreationHandler")
+	log.Debug("ShortlinkCreationHandler")
 
 	//Load params
 	vars := mux.Vars(r)
@@ -144,11 +149,12 @@ func ShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(origin + " is now accessible via http://" + r.Host + "/" + token + "\n"))
+	creationResult := CreationResult{origin, token}
+	json.NewEncoder(w).Encode(creationResult)
 }
 
 func AdvancedShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
-	log.Info("AdvancedShortlinkCreationHandler")
+	log.Debug("AdvancedShortlinkCreationHandler")
 
 	//Load params
 	decoder := json.NewDecoder(r.Body)
@@ -168,7 +174,8 @@ func AdvancedShortlinkCreationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(origin + " is now accessible via http://" + r.Host + "/" + token + "\n"))
+	creationResult := CreationResult{origin, token}
+	json.NewEncoder(w).Encode(creationResult)
 }
 
 func RegisterShortlink(origin, token string) (string, error) {
@@ -205,16 +212,16 @@ func RegisterShortlink(origin, token string) (string, error) {
 }
 
 func MonitoringHandler(w http.ResponseWriter, r *http.Request) {
-	log.Info("MonitoringHandler")
+	log.Debug("MonitoringHandler")
 	//Load params
 	vars := mux.Vars(r)
 	token := vars["value"]
-	shortlink, err := ReadFromRedisAsJson(token)
+	shortlink, err := ReadFromRedis(token)
 	if err != nil {
 		http.Error(w, "Token not found", 404)
 		return
 	}
-	w.Write([]byte(shortlink))
+	json.NewEncoder(w).Encode(shortlink)
 }
 
 // UTILS
@@ -254,17 +261,6 @@ func ReadFromRedis(token string) (Shortlink, error) {
 	reader.Decode(&shortlink)
 	// Return
 	return shortlink, nil
-}
-
-// Get a Shortlink object as it is stored in Redis (JSON)
-func ReadFromRedisAsJson(token string) (string, error) {
-	// Get value from key
-	redisValue := redisClient.Get(token).Val()
-	if redisValue == "" {
-		return "", errors.New("No value is associated to key [" + token + "]")
-	}
-	// JSON -> Shortlink
-	return redisValue, nil
 }
 
 // Generates a random String
